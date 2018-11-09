@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<script type="text/javascript" src="js/jquery.min.js" charset="UTF-8"></script>
+<script type="text/javascript" src="js/bootstrap.min.js" charset="UTF-8"></script>
+<link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" />
+<title>メモ</title>
+<style th:replace="fragments :: standard-style"></style>
+<style type="text/css">
+.cursor-pointer {
+	cursor: pointer;
+}
+
+.icon {
+	margin: 5px;
+	color: #aaa;
+}
+
+.icon-add {
+	color: #161;
+}
+
+.icon-add:hover {
+	color: #1F1;
+}
+
+.icon-remove {
+	color: #611;
+}
+
+.icon-remove:hover {
+	color: #F11;
+}
+
+#list {
+	margin-bottom: 5px;
+}
+
+.list_element {
+	margin-left: 5px;
+	margin-bottom: 5px;
+	border: 1px #F99 solid;
+	background-color: #FDD;
+	padding: 7px 10px 7px 10px;
+	border-radius: 10px;
+	display: inline-block;
+}
+
+.list_element_new_create {
+	border-color: #99F;
+	background-color: #DDF;
+}
+
+#memo_content {
+	resize: none;
+	border-top-right-radius: 0;
+	border-top-left-radius: 0;
+	border-top: 0;
+}
+
+#shade {
+	position: fixed;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	opacity: 0.4;
+	background-color: black;
+	z-index: 5;
+}
+
+#open_dialog {
+	width: 500px;
+	position: absolute;
+	z-index: 10;
+	display: none;
+	top: 50%;
+	left: 50%;
+	margin-left: -250px;
+	margin-top: -100px; /* TODO 開くボタンからの相対位置に変更したい */
+}
+</style>
+
+<script type="text/javascript">
+	var memoClient = (function() {
+
+		// state change
+		var canOpen = function(bln) {
+			$('#open_button').prop('disabled', !bln);
+		}
+
+		var canEdit = function(bln) {
+			$('#memo_content').prop('disabled', !bln);
+			$('#save_button').prop('disabled', !bln);
+		}
+
+		var canRemove = function(bln) {
+			$('#remove_button').prop('disabled', !bln);
+		}
+
+		// mapping / collecting / clearing
+		var mapping = function(data) {
+			$('#memo_id').val(data._memoId);
+			$('#memo_title').text(data._title);
+			$('#memo_content').val(data._content);
+		}
+
+		var collecting = function() {
+			return {
+				_memoId : $('#memo_id').val(),
+				_title : $('#memo_title').text(),
+				_content : $('#memo_content').val()
+			};
+		}
+
+		var clearing = function() {
+			canEdit(false);
+			canRemove(false);
+			$('#memo_id').val('');
+			$('#memo_title').text('');
+			$('#memo_content').val('');
+		}
+
+		// show alert
+		var showAlert = function(message) {
+			// TODO use jquery or bootstrap
+			window.alert(message);
+		}
+
+		var showConfirm = function(message) {
+			return window.confirm(message);
+		}
+
+		// open dialog
+		var showOpenDialog = function() {
+			var shade = $('<div></div>').attr('id', 'shade').attr('onclick',
+					'memoClient.hideOpenDialog()');
+			$('#open_dialog').before(shade).show();
+		}
+
+		var hideOpenDialog = function() {
+			$('#shade').remove();
+			$('#open_dialog').hide();
+		}
+
+		var toEditable = function(id) {
+			var target = $('#' + id);
+			var textArea = $('<input>').attr('type', 'text').attr('id',
+					id + '_edit').css('position', 'relative').css('z-index',
+					'10').attr('size', target.text().length + 10).attr(
+					'onchange', 'memoClient.changed()').focusout(function() {
+				$('#' + id).text($('#' + id + '_edit').val());
+				$('#' + id + '_edit').remove();
+				$('#' + id).show();
+			}).val(target.text());
+
+			target.parent().append(textArea);
+			target.hide();
+			textArea.focus();
+		}
+
+		// memo cache
+		var cache = {};
+
+		// 変更したかどうかのフラグ
+		var _changed = false;
+
+		var changed = function() {
+			_changed = true;
+		}
+
+		var create = function() {
+			var title = $('#memo_title').text();
+			var content = $('#memo_content').val();
+
+			// 編集中のメモがあった場合に警告？
+			if (_changed) {
+				if (!showConfirm('編集中のメモを破棄しますか？')) {
+					hideOpenDialog();
+					return;
+				}
+			}
+
+			clearing();
+			$('#memo_title').text('無題のメモ');
+			canEdit(true);
+			hideOpenDialog();
+			_changed = false;
+		}
+
+		var select = function(memoId) {
+			if (_changed) {
+				if (!showConfirm('編集中のメモを破棄しますか？')) {
+					hideOpenDialog();
+					return;
+				}
+			}
+
+			var memoData = cache[memoId];
+			// TODO cacheが無い時とは、まだ保存されているデータが無いということ？
+			//      それはそもそも選択できない。
+			if (memoData) {
+				mapping(memoData);
+				canEdit(true);
+				canRemove(true);
+				_changed = false;
+			}
+			hideOpenDialog();
+		}
+
+		// ajax functions
+		var list = function() {
+			$.ajax({
+				url : 'api/memo/list',
+				type : 'get',
+				dataType : 'json'
+			}).done(
+					function(result) {
+						var list = $('#list');
+						list.empty();
+						cache = {};
+						result
+								.forEach(function(memoData, index) {
+									cache[memoData._memoId] = memoData;
+
+									var memoTitle = $('<span></span>').text(
+											memoData._title).attr('id',
+											'title_' + memoData._memoId)
+											.addClass('list_element').addClass(
+													'cursor-pointer').attr(
+													'onclick',
+													'memoClient.select(\''
+															+ memoData._memoId
+															+ '\')');
+
+									list.append(memoTitle);
+								});
+						canOpen(true);
+					}).fail(function(error) {
+				showAlert('メモのデータが取得できません。');
+				console.log('cannot get memo data list.');
+				console.log(error);
+			});
+		}
+
+		var recovery = function(memoId) {
+			list();
+			if (memoId) {
+				select(memoId);
+			}
+		}
+
+		var save = function() {
+			var memoData = collecting();
+			var memoId = memoData._memoId;
+
+			$.ajax({
+				url : memoId ? 'api/memo/' + memoId : 'api/memo',
+				type : memoId ? 'put' : 'post',
+				dataType : 'json',
+				data : JSON.stringify(memoData)
+			}).done(function(result) {
+				mapping(result);
+				_changed = false;
+
+				// 毎回listの処理を呼びたくない -> cacheを$(''#list')に再マッピングする処理を作る
+				list();
+			}).fail(function(error) {
+				showAlert('メモの保存に失敗しました。');
+				console.log('failed to save memo data.');
+				console.log(error);
+				recovery(memoId);
+			});
+		}
+
+		var remove = function() {
+			var memoData = collecting();
+			var memoId = memoData._memoId;
+
+			if (!showConfirm('削除してもよろしいですか？')) {
+				return;
+			}
+
+			$.ajax({
+				url : 'api/memo/' + memoId,
+				type : 'delete',
+				dataType : 'json'
+			}).done(function(result) {
+				// TODO listの更新
+				cache[memoId] = undefined;
+				delete cache[memoId];
+				clearing();
+				_changed = false;
+				list();
+			}).fail(function(error) {
+				showAlert('メモの削除に失敗しました。');
+				console.log('failed to save memo data.');
+				console.log(error);
+				recovery(memoId);
+			});
+		}
+
+		var client = {};
+		client.list = list;
+		client.select = select;
+		client.create = create;
+		client.save = save;
+		client.remove = remove;
+
+		client.changed = changed;
+		client.showOpenDialog = showOpenDialog;
+		client.hideOpenDialog = hideOpenDialog;
+
+		client.toEditable = toEditable;
+
+		return client;
+	}());
+
+	// textarea size fitting
+	var sizeFitting = function() {
+		$('#memo_content').height(
+				$('#memo_content').height() + $(window).height()
+						- $(document.body).height() - 50);
+	}
+
+	$(document).ready(function() {
+		sizeFitting();
+		memoClient.list();
+		memoClient.create();
+	});
+
+	$(window).resize(sizeFitting);
+</script>
+</head>
+
+<body>
+	<nav th:replace="fragments :: navbar"></nav>
+	<div class="container">
+		<div class="panel panel-info" id="open_dialog">
+			<div class="panel-heading">ファイルを開く</div>
+			<div class="panel-body" style="padding-bottom: 3px;">
+				<div id="list"></div>
+				<span class="glyphicon glyphicon-plus icon cursor-pointer icon-add list_element list_element_new_create" aria-hidden="true" onclick="memoClient.create()">新規</span>
+			</div>
+		</div>
+		<div class="content" style="margin-top: 5px;">
+			<div class="row">
+				<div class="col-xs-12">
+					<div class="navbar navbar-default" style="margin-bottom: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0">
+						<div class="collapse navbar-collapse">
+							<button type="button" class="btn btn-info navbar-btn" id="open_button" onclick="memoClient.showOpenDialog()" disabled="disabled">開く</button>
+							<span class="cursor-pointer" id="memo_title" onclick="memoClient.toEditable('memo_title')"></span>
+							<button type="button" class="btn btn-primary navbar-btn	navbar-right" id="save_button" style="margin-right: 10px;" onclick="memoClient.save()" disabled="disabled">保存</button>
+							<button type="button" class="btn btn-danger navbar-btn navbar-right" id="remove_button" style="margin-right: 10px;" onclick="memoClient.remove()" disabled="disabled">削除</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-12">
+					<div class="form-group" style="margin-bottom: 5px;">
+						<textarea class="form-control" name="content" id="memo_content" placeholder="メモを記入してください" disabled="disabled" onchange="memoClient.changed()"></textarea>
+					</div>
+					<input type="hidden" name="memoId" id="memo_id" value="" />
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

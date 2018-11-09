@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<bean id="transactionProxyBase" abstract="true" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean" />
+
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="org.apache.derby.jdbc.EmbeddedDriver" />
+		<property name="url" value="jdbc:derby:db" />
+		<property name="username" value="dbUser" />
+		<property name="password" value="dbPassword" />
+	</bean>
+
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="mapperLocations" value="classpath:app/saiou/kantios/mapper/*.xml" />
+		<property name="configuration">
+			<bean class="org.apache.ibatis.session.Configuration">
+				<property name="localCacheScope" value="STATEMENT" />
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="todoMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="app.saiou.kantios.mapper.TbTodoMapper" />
+		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+	</bean>
+
+	<bean id="todoModel.impl" class="app.saiou.kantios.model.TodoImpl">
+		<property name="mapper" ref="todoMapper" />
+	</bean>
+
+	<bean id="todoModel" parent="transactionProxyBase">
+		<property name="transactionManager" ref="transactionManager" />
+		<property name="transactionAttributes">
+			<props>
+				<prop key="create*">PROPAGATION_REQUIRED,-java.lang.Exception</prop>
+				<prop key="update*">PROPAGATION_REQUIRED,-java.lang.Exception</prop>
+				<prop key="delete*">PROPAGATION_REQUIRED,-java.lang.Exception</prop>
+			</props>
+		</property>
+		<property name="target">
+			<ref bean="todoModel.impl" />
+		</property>
+	</bean>
+
+	<bean id="memoMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="app.saiou.kantios.mapper.TbMemoMapper" />
+		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+	</bean>
+
+	<bean id="memoModel.impl" class="app.saiou.kantios.model.MemoImpl">
+		<property name="mapper" ref="memoMapper" />
+	</bean>
+
+	<bean id="memoModel" parent="transactionProxyBase">
+		<property name="transactionManager" ref="transactionManager" />
+		<property name="transactionAttributes">
+			<props>
+				<prop key="create*">PROPAGATION_REQUIRED,-java.lang.Exception</prop>
+				<prop key="update*">PROPAGATION_REQUIRED,-java.lang.Exception</prop>
+				<prop key="delete*">PROPAGATION_REQUIRED,-java.lang.Exception</prop>
+			</props>
+		</property>
+		<property name="target">
+			<ref bean="memoModel.impl" />
+		</property>
+	</bean>
+
+	<bean id="userMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="app.saiou.kantios.mapper.TbUserMapper" />
+		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+	</bean>
+
+	<bean id="userModel.impl" class="app.saiou.kantios.model.UserImpl">
+		<property name="mapper" ref="userMapper" />
+	</bean>
+
+	<bean id="userModel" parent="transactionProxyBase">
+		<property name="transactionManager" ref="transactionManager" />
+		<property name="transactionAttributes">
+			<props>
+				<prop key="handle*">PROPAGATION_REQUIRED,-java.lang.Exception</prop>
+			</props>
+		</property>
+		<property name="target">
+			<ref bean="userModel.impl" />
+		</property>
+	</bean>
+
+</beans>

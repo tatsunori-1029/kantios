@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<script type="text/javascript" src="js/jquery.min.js" charset="UTF-8"></script>
+<script type="text/javascript" src="js/bootstrap.min.js" charset="UTF-8"></script>
+<link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" />
+<style type="text/css" th:fragment="standard-style">
+body {
+  padding-top: 60px;
+}
+</style>
+</head>
+
+<body>
+<nav th:fragment="navbar" class="navbar navbar-default navbar-fixed-top">
+	<div class="container-fluid">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-kantios">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="/" onclick="">kantios</a>
+		</div>
+		<div class="collapse navbar-collapse" id="navbar-kantios">
+			<ul class="nav navbar-nav">
+				<li id="navbar-menu-memo" ><a href="/memo" onclick="">メモ</a></li>
+				<li id="navbar-menu-memo" ><a href="/todo" onclick="">ToDo</a></li>
+			</ul>
+			<ul class="nav navbar-nav navbar-right">
+				<li id="navbar-menu-maintainer" class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span th:text="${userName}">ユーザー未選択</span><span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="/logout">ログアウト</a></li>
+					</ul>
+				</li>
+			</ul>
+		</div>
+	</div>
+</nav>
+</body>
+</html>

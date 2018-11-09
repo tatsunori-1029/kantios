@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="app.saiou.kantios.mapper.TbMemoMapper">
+  <resultMap id="BaseResultMap" type="app.saiou.kantios.entity.TbMemo">
+    <id column="MEMO_ID" jdbcType="CHAR" property="memoId" />
+    <result column="TITLE" jdbcType="VARCHAR" property="title" />
+    <result column="CREATE_USER_ID" jdbcType="CHAR" property="createUserId" />
+    <result column="CREATE_TIMESTAMP" jdbcType="TIMESTAMP" property="createTimestamp" />
+    <result column="UPDATE_USER_ID" jdbcType="CHAR" property="updateUserId" />
+    <result column="UPDATE_TIMESTAMP" jdbcType="TIMESTAMP" property="updateTimestamp" />
+  </resultMap>
+  <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="app.saiou.kantios.entity.TbMemo">
+    <result column="CONTENT" jdbcType="CLOB" property="content" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    MEMO_ID, TITLE, CREATE_USER_ID, CREATE_TIMESTAMP, UPDATE_USER_ID, UPDATE_TIMESTAMP
+  </sql>
+  <sql id="Blob_Column_List">
+    CONTENT
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="ResultMapWithBLOBs">
+    select 'false' as QUERYID,
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from TB_MEMO
+    where MEMO_ID = #{memoId,jdbcType=CHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from TB_MEMO
+    where MEMO_ID = #{memoId,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="app.saiou.kantios.entity.TbMemo">
+    insert into TB_MEMO (MEMO_ID, TITLE, CREATE_USER_ID, 
+      CREATE_TIMESTAMP, UPDATE_USER_ID, UPDATE_TIMESTAMP, 
+      CONTENT)
+    values (#{memoId,jdbcType=CHAR}, #{title,jdbcType=VARCHAR}, #{createUserId,jdbcType=CHAR}, 
+      current_timestamp, #{updateUserId,jdbcType=CHAR}, current_timestamp, 
+      #{content,jdbcType=CLOB})
+  </insert>
+  <insert id="insertSelective" parameterType="app.saiou.kantios.entity.TbMemo">
+    insert into TB_MEMO
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="memoId != null">
+        MEMO_ID,
+      </if>
+      <if test="title != null">
+        TITLE,
+      </if>
+      <if test="createUserId != null">
+        CREATE_USER_ID,
+      </if>
+        CREATE_TIMESTAMP,
+      <if test="updateUserId != null">
+        UPDATE_USER_ID,
+      </if>
+        UPDATE_TIMESTAMP,
+      <if test="content != null">
+        CONTENT,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="memoId != null">
+        #{memoId,jdbcType=CHAR},
+      </if>
+      <if test="title != null">
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="createUserId != null">
+        #{createUserId,jdbcType=CHAR},
+      </if>
+        current_timestamp,
+      <if test="updateUserId != null">
+        #{updateUserId,jdbcType=CHAR},
+      </if>
+        current_timestamp,
+      <if test="content != null">
+        #{content,jdbcType=CLOB},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="app.saiou.kantios.entity.TbMemo">
+    update TB_MEMO
+    <set>
+      <if test="title != null">
+        TITLE = #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="content != null">
+        CONTENT = #{content,jdbcType=CLOB},
+      </if>
+        UPDATE_USER_ID = #{updateUserId,jdbcType=CHAR},
+        UPDATE_TIMESTAMP = current_timestamp,
+    </set>
+    where MEMO_ID = #{memoId,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="app.saiou.kantios.entity.TbMemo">
+    update TB_MEMO
+    set TITLE = #{title,jdbcType=VARCHAR},
+      UPDATE_USER_ID = #{updateUserId,jdbcType=CHAR},
+      UPDATE_TIMESTAMP = current_timestamp,
+      CONTENT = #{content,jdbcType=CLOB}
+    where MEMO_ID = #{memoId,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="app.saiou.kantios.entity.TbMemo">
+    update TB_MEMO
+    set TITLE = #{title,jdbcType=VARCHAR},
+      UPDATE_USER_ID = #{updateUserId,jdbcType=CHAR},
+      UPDATE_TIMESTAMP = current_timestamp
+    where MEMO_ID = #{memoId,jdbcType=CHAR}
+  </update>
+
+  <select id="search" resultMap="ResultMapWithBLOBs" parameterType="app.saiou.kantios.entity.TbMemo">
+    select
+      *
+    from
+      TB_MEMO
+    <where>
+      <if test="memoId != null">
+        AND MEMO_ID = #{memoId,jdbcType=CHAR}
+      </if>
+      <if test="title != null">
+        AND TITLE = #{title,jdbcType=VARCHAR}
+      </if>
+      <if test="createUserId != null">
+        AND CREATE_USER_ID = #{createUserId,jdbcType=CHAR}
+      </if>
+      <if test="createTimestamp != null">
+        AND CREATE_TIMESTAMP = #{createTimestamp,jdbcType=TIMESTAMP}
+      </if>
+      <if test="updateUserId != null">
+        AND UPDATE_USER_ID = #{updateUserId,jdbcType=CHAR}
+      </if>
+      <if test="updateTimestamp != null">
+        AND UPDATE_TIMESTAMP = #{updateTimestamp,jdbcType=TIMESTAMP}
+      </if>
+    </where>
+  </select>
+  <select id="selectAllRecords" parameterType="app.saiou.kantios.entity.TbMemo" resultMap="ResultMapWithBLOBs">
+    select
+      *
+    from
+      TB_MEMO
+  </select>
+</mapper>

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="app.saiou.kantios.mapper.TbUserMapper">
+  <resultMap id="BaseResultMap" type="app.saiou.kantios.entity.TbUser">
+    <id column="USER_ID" jdbcType="CHAR" property="userId" />
+    <result column="AUTH_USER_ID" jdbcType="VARCHAR" property="authUserId" />
+    <result column="DISPLAY_NAME" jdbcType="VARCHAR" property="displayName" />
+    <result column="CREATE_USER_ID" jdbcType="CHAR" property="createUserId" />
+    <result column="CREATE_TIMESTAMP" jdbcType="TIMESTAMP" property="createTimestamp" />
+    <result column="UPDATE_USER_ID" jdbcType="CHAR" property="updateUserId" />
+    <result column="UPDATE_TIMESTAMP" jdbcType="TIMESTAMP" property="updateTimestamp" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    USER_ID, AUTH_USER_ID, DISPLAY_NAME, CREATE_USER_ID, CREATE_TIMESTAMP, UPDATE_USER_ID, 
+    UPDATE_TIMESTAMP
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 'false' as QUERYID,
+    <include refid="Base_Column_List" />
+    from TB_USER
+    where USER_ID = #{userId,jdbcType=CHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from TB_USER
+    where USER_ID = #{userId,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="app.saiou.kantios.entity.TbUser">
+    insert into TB_USER (USER_ID, AUTH_USER_ID, DISPLAY_NAME, 
+      CREATE_USER_ID, CREATE_TIMESTAMP, UPDATE_USER_ID, 
+      UPDATE_TIMESTAMP)
+    values (#{userId,jdbcType=CHAR}, #{authUserId,jdbcType=VARCHAR}, #{displayName,jdbcType=VARCHAR}, 
+      #{createUserId,jdbcType=CHAR}, current_timestamp, #{updateUserId,jdbcType=CHAR}, 
+      current_timestamp)
+  </insert>
+  <insert id="insertSelective" parameterType="app.saiou.kantios.entity.TbUser">
+    insert into TB_USER
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="userId != null">
+        USER_ID,
+      </if>
+      <if test="authUserId != null">
+        AUTH_USER_ID,
+      </if>
+      <if test="displayName != null">
+        DISPLAY_NAME,
+      </if>
+      <if test="createUserId != null">
+        CREATE_USER_ID,
+      </if>
+      <if test="createTimestamp != null">
+        CREATE_TIMESTAMP,
+      </if>
+      <if test="updateUserId != null">
+        UPDATE_USER_ID,
+      </if>
+      <if test="updateTimestamp != null">
+        UPDATE_TIMESTAMP,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="userId != null">
+        #{userId,jdbcType=CHAR},
+      </if>
+      <if test="authUserId != null">
+        #{authUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="displayName != null">
+        #{displayName,jdbcType=VARCHAR},
+      </if>
+      <if test="createUserId != null">
+        #{createUserId,jdbcType=CHAR},
+      </if>
+      <if test="createTimestamp != null">
+        current_timestamp,
+      </if>
+      <if test="updateUserId != null">
+        #{updateUserId,jdbcType=CHAR},
+      </if>
+      <if test="updateTimestamp != null">
+        current_timestamp,
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="app.saiou.kantios.entity.TbUser">
+    update TB_USER
+    <set>
+      <if test="authUserId != null">
+        AUTH_USER_ID = #{authUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="displayName != null">
+        DISPLAY_NAME = #{displayName,jdbcType=VARCHAR},
+      </if>
+      <if test="createUserId != null">
+        CREATE_USER_ID = #{createUserId,jdbcType=CHAR},
+      </if>
+      <if test="createTimestamp != null">
+        CREATE_TIMESTAMP = #{createTimestamp,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateUserId != null">
+        UPDATE_USER_ID = #{updateUserId,jdbcType=CHAR},
+      </if>
+      <if test="updateTimestamp != null">
+        UPDATE_TIMESTAMP = #{updateTimestamp,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where USER_ID = #{userId,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="app.saiou.kantios.entity.TbUser">
+    update TB_USER
+    set AUTH_USER_ID = #{authUserId,jdbcType=VARCHAR},
+      DISPLAY_NAME = #{displayName,jdbcType=VARCHAR},
+      CREATE_USER_ID = #{createUserId,jdbcType=CHAR},
+      CREATE_TIMESTAMP = current_timestamp,
+      UPDATE_USER_ID = #{updateUserId,jdbcType=CHAR},
+      UPDATE_TIMESTAMP = current_timestamp
+    where USER_ID = #{userId,jdbcType=CHAR}
+  </update>
+  <select id="search" resultMap="BaseResultMap">
+    select
+      *
+    from
+      TB_USER
+    <where>
+      <if test="userId != null">
+        AND USER_ID = #{userId,jdbcType=CHAR}
+      </if>
+      <if test="authUserId != null">
+        AND AUTH_USER_ID = #{authUserId,jdbcType=VARCHAR}
+      </if>
+      <if test="displayName != null">
+        AND DISPLAY_NAME = #{displayName,jdbcType=VARCHAR}
+      </if>
+      <if test="createUserId != null">
+        AND CREATE_USER_ID = #{createUserId,jdbcType=CHAR}
+      </if>
+      <if test="createTimestamp != null">
+        AND CREATE_TIMESTAMP = #{createTimestamp,jdbcType=TIMESTAMP}
+      </if>
+      <if test="updateUserId != null">
+        AND UPDATE_USER_ID = #{updateUserId,jdbcType=CHAR}
+      </if>
+      <if test="updateTimestamp != null">
+        AND UPDATE_TIMESTAMP = #{updateTimestamp,jdbcType=TIMESTAMP}
+      </if>
+    </where>
+  </select>
+  <select id="selectAllRecords" parameterType="app.saiou.kantios.entity.TbUser" resultMap="BaseResultMap">
+    select
+      *
+    from
+      TB_USER
+  </select>
+</mapper>
